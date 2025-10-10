@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+*/node_modules/
+
+# Cache
+.cache/
+frontend/.cache/
+backend/.cache/
+
+# Build
+build/
+dist/
+frontend/build/
+frontend/dist/
+backend/build/
+backend/dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
