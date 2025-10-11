@@ -6,7 +6,7 @@ const { createEstudiante, getEstudiantes, getEstudianteById, updateEstudiante, d
 
 // Protected routes
 router.use(auth);
-router.use(authorizeRole(['admin', 'teacher', 'coordinator', 'student']));
+router.use(authorizeRole(['COORDINADOR', 'DOCENTE']));
 
 router.post('/', createEstudiante);
 router.get('/', getEstudiantes);

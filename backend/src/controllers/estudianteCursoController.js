@@ -12,7 +12,7 @@ module.exports = {
   async getById(req, res) {
     try {
       const estudianteCurso = await EstudianteCurso.findByPk(req.params.id);
-      if (!estudianteCurso) return res.status(404).json({ error: 'No encontrado' });
+      if (!estudianteCurso) return res.status(404).json({ error: 'No encontrado1' });
       res.json(estudianteCurso);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -29,7 +29,7 @@ module.exports = {
   async update(req, res) {
     try {
       const estudianteCurso = await EstudianteCurso.findByPk(req.params.id);
-      if (!estudianteCurso) return res.status(404).json({ error: 'No encontrado' });
+      if (!estudianteCurso) return res.status(404).json({ error: 'No encontrado2' });
       await estudianteCurso.update(req.body);
       res.json(estudianteCurso);
     } catch (err) {
@@ -39,7 +39,7 @@ module.exports = {
   async delete(req, res) {
     try {
       const estudianteCurso = await EstudianteCurso.findByPk(req.params.id);
-      if (!estudianteCurso) return res.status(404).json({ error: 'No encontrado' });
+      if (!estudianteCurso) return res.status(404).json({ error: 'No encontrado3' });
       await estudianteCurso.destroy();
       res.json({ message: 'Eliminado' });
     } catch (err) {

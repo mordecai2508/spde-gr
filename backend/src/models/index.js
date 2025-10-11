@@ -1,6 +1,7 @@
 
 const sequelize = require('../config/database');
-const Estudiante = require('../../../../spde-api/models/Estudiante')(sequelize);
+//const Estudiante = require('../../../../spde-api/models/Estudiante')(sequelize);
+const Estudiante = require('./Student')(sequelize); 
 const Usuario = require('./Usuario');
 const Asistencia = require('./Asistencia');
 const Calificacion = require('./Calificacion');
