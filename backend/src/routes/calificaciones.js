@@ -8,10 +8,10 @@ const { createCalificacion, getCalificaciones, getCalificacionById, updateCalifi
 router.use(auth);
 router.use(authorizeRole(['COORDINADOR', 'DOCENTE']));
 
-router.post('/calificacion', createCalificacion);
-router.get('/calificacion', getCalificaciones);
-router.get('/calificacion/:id', getCalificacionById);
-router.put('/calificacion/:id', updateCalificacion);
-router.delete('/calificacion/:id', deleteCalificacion);
+router.post('/', createCalificacion);
+router.get('/', getCalificaciones);
+router.get('/:id', getCalificacionById);
+router.put('/:id', updateCalificacion);
+router.delete('/:id', deleteCalificacion);
 
 module.exports = router;

@@ -8,10 +8,10 @@ const { createAsistencia, getAsistencias, getAsistenciaById, updateAsistencia, d
 router.use(auth);
 router.use(authorizeRole(['COORDINADOR', 'DOCENTE']));
 
-router.post('/asistencia', createAsistencia);
-router.get('/asistencia', getAsistencias);
-router.get('/asistencia/:id', getAsistenciaById);
-router.put('/asistencia/:id', updateAsistencia);
-router.delete('/asistencia/:id', deleteAsistencia);
+router.post('/', createAsistencia);
+router.get('/', getAsistencias);
+router.get('/:id', getAsistenciaById);
+router.put('/:id', updateAsistencia);
+router.delete('/:id', deleteAsistencia);
 
 module.exports = router;

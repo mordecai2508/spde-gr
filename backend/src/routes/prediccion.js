@@ -8,10 +8,10 @@ const { createPrediccion, getPredicciones, getPrediccionById, updatePrediccion, 
 router.use(auth);
 router.use(authorizeRole(['COORDINADOR', 'DOCENTE']));
 
-router.post('/prediccion', createPrediccion);
-router.get('/prediccion', getPredicciones);
-router.get('/prediccion/:id', getPrediccionById);
-router.put('/prediccion/:id', updatePrediccion);
-router.delete('/prediccion/:id', deletePrediccion);
+router.post('/', createPrediccion);
+router.get('/', getPredicciones);
+router.get('/:id', getPrediccionById);
+router.put('/:id', updatePrediccion);
+router.delete('/:id', deletePrediccion);
 
 module.exports = router;

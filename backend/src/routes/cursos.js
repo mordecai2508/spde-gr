@@ -8,10 +8,10 @@ const { getCursos, getCursoById, createCurso, updateCurso, deleteCurso } = requi
 router.use(auth);
 router.use(authorizeRole(['COORDINADOR']));
 
-router.get('/curso', getCursos);
-router.get('/curso/:id', getCursoById);
-router.post('/curso', createCurso);
-router.put('/curso/:id', updateCurso);
-router.delete('/curso/:id', deleteCurso);
+router.get('/', getCursos);
+router.get('/:id', getCursoById);
+router.post('/', createCurso);
+router.put('/:id', updateCurso);
+router.delete('/:id', deleteCurso);
 
 module.exports = router;

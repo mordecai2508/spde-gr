@@ -8,10 +8,10 @@ const { createEstudianteCurso, getEstudianteCursos, getEstudianteCursoById, upda
 router.use(auth);
 router.use(authorizeRole(['COORDINADOR']));
 
-router.post('/estudiantecurso', createEstudianteCurso);
-router.get('/estudiantecurso', getEstudianteCursos);
-router.get('/estudiantecurso/:id', getEstudianteCursoById);
-router.put('/estudiantecurso/:id', updateEstudianteCurso);
-router.delete('/estudiantecurso/:id', deleteEstudianteCurso);
+router.post('/', createEstudianteCurso);
+router.get('/', getEstudianteCursos);
+router.get('/:id', getEstudianteCursoById);
+router.put('/:id', updateEstudianteCurso);
+router.delete('/:id', deleteEstudianteCurso);
 
 module.exports = router;
