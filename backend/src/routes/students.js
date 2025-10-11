@@ -8,10 +8,10 @@ const { createEstudiante, getEstudiantes, getEstudianteById, updateEstudiante, d
 router.use(auth);
 router.use(authorizeRole(['COORDINADOR', 'DOCENTE']));
 
-router.post('/', createEstudiante);
-router.get('/', getEstudiantes);
-router.get('/:id', getEstudianteById);
-router.put('/:id', updateEstudiante);
-router.delete('/:id', deleteEstudiante);
+router.post('/estudiante', createEstudiante);
+router.get('/estudiante', getEstudiantes);
+router.get('/estudiante/:id', getEstudianteById);
+router.put('/estudiante/:id', updateEstudiante);
+router.delete('/estudiante/:id', deleteEstudiante);
 
 module.exports = router;

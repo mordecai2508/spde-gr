@@ -1,11 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const cursoController = require('../controllers/cursoController');
+const { authorizeRole } = require('../middleware/roles.js');
+const auth = require('../middleware/auth');
+const { getCursos, getCursoById, createCurso, updateCurso, deleteCurso } = require('../controllers/cursoController.js');
 
-router.get('/', cursoController.getAll);
-router.get('/:id', cursoController.getById);
-router.post('/', cursoController.create);
-router.put('/:id', cursoController.update);
-router.delete('/:id', cursoController.delete);
+// Protected routes
+router.use(auth);
+router.use(authorizeRole(['COORDINADOR']));
+
+router.get('/curso', getCursos);
+router.get('/curso/:id', getCursoById);
+router.post('/curso', createCurso);
+router.put('/curso/:id', updateCurso);
+router.delete('/curso/:id', deleteCurso);
 
 module.exports = router;

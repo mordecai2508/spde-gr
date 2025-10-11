@@ -1,49 +1,92 @@
-const EstudianteCurso = require('../models/EstudianteCurso');
+const estudianteCursoService = require('../services/estudianteCursoService');
+const { body, validationResult } = require('express-validator');
+const logger = require('../utils/logger');
+
+const createEstudianteCurso = [
+  body('id_estudiante').isInt(),
+  body('id_curso').isInt(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const estudianteCurso = await estudianteCursoService.create(req.body);
+      res.status(201).json(estudianteCurso);
+    } catch (error) {
+      logger.error(error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  },
+];
+
+const getEstudianteCursos = async (req, res) => {
+  try {
+    const estudianteCursos = await estudianteCursoService.findAll();
+    res.json(estudianteCursos);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getEstudianteCursoById = async (req, res) => {
+  try {
+    const estudianteCurso = await estudianteCursoService.findById(req.params.id);
+    if (estudianteCurso) {
+      res.json(estudianteCurso);
+    } else {
+      res.status(404).json({ error: 'Asignación no encontrada' });
+    }
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const updateEstudianteCurso = [
+  body('id_estudiante').optional().isInt(),
+  body('id_curso').optional().isInt(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const [updated] = await estudianteCursoService.update(req.params.id, req.body);
+      if (updated) {
+        const updatedEstudianteCurso = await estudianteCursoService.findById(req.params.id);
+        res.json(updatedEstudianteCurso);
+      } else {
+        res.status(404).json({ error: 'Asignación no encontrada' });
+      }
+    } catch (error) {
+      logger.error(error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+];
+
+const deleteEstudianteCurso = async (req, res) => {
+  try {
+    const deleted = await estudianteCursoService.delete(req.params.id);
+    if (deleted) {
+      res.status(204).send();
+    } else {
+      res.status(404).json({ error: 'Asignación no encontrada' });
+    }
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = {
-  async getAll(req, res) {
-    try {
-      const estudiantesCursos = await EstudianteCurso.findAll();
-      res.json(estudiantesCursos);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  },
-  async getById(req, res) {
-    try {
-      const estudianteCurso = await EstudianteCurso.findByPk(req.params.id);
-      if (!estudianteCurso) return res.status(404).json({ error: 'No encontrado1' });
-      res.json(estudianteCurso);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  },
-  async create(req, res) {
-    try {
-      const nuevo = await EstudianteCurso.create(req.body);
-      res.status(201).json(nuevo);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  },
-  async update(req, res) {
-    try {
-      const estudianteCurso = await EstudianteCurso.findByPk(req.params.id);
-      if (!estudianteCurso) return res.status(404).json({ error: 'No encontrado2' });
-      await estudianteCurso.update(req.body);
-      res.json(estudianteCurso);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  },
-  async delete(req, res) {
-    try {
-      const estudianteCurso = await EstudianteCurso.findByPk(req.params.id);
-      if (!estudianteCurso) return res.status(404).json({ error: 'No encontrado3' });
-      await estudianteCurso.destroy();
-      res.json({ message: 'Eliminado' });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  }
+  createEstudianteCurso,
+  getEstudianteCursos,
+  getEstudianteCursoById,
+  updateEstudianteCurso,
+  deleteEstudianteCurso,
 };

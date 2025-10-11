@@ -1,49 +1,92 @@
-const Curso = require('../models/Curso');
+const cursoService = require('../services/cursoService');
+const { body, validationResult } = require('express-validator');
+const logger = require('../utils/logger');
+
+const createCurso = [
+  body('nombre_curso').isLength({ min: 1 }).trim().escape(),
+  body('descripcion').isLength({ min: 1 }).trim().escape(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const curso = await cursoService.create(req.body);
+      res.status(201).json(curso);
+    } catch (error) {
+      logger.error(error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  },
+];
+
+const getCursos = async (req, res) => {
+  try {
+    const cursos = await cursoService.findAll();
+    res.json(cursos);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getCursoById = async (req, res) => {
+  try {
+    const curso = await cursoService.findById(req.params.id);
+    if (curso) {
+      res.json(curso);
+    } else {
+      res.status(404).json({ error: 'Curso no encontrado' });
+    }
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const updateCurso = [
+  body('nombre_curso').optional().isLength({ min: 1 }).trim().escape(),
+  body('descripcion').optional().isLength({ min: 1 }).trim().escape(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const [updated] = await cursoService.update(req.params.id, req.body);
+      if (updated) {
+        const updatedCurso = await cursoService.findById(req.params.id);
+        res.json(updatedCurso);
+      } else {
+        res.status(404).json({ error: 'Curso no encontrado' });
+      }
+    } catch (error) {
+      logger.error(error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+];
+
+const deleteCurso = async (req, res) => {
+  try {
+    const deleted = await cursoService.delete(req.params.id);
+    if (deleted) {
+      res.status(204).send();
+    } else {
+      res.status(404).json({ error: 'Curso no encontrado' });
+    }
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = {
-  async getAll(req, res) {
-    try {
-      const cursos = await Curso.findAll();
-      res.json(cursos);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  },
-  async getById(req, res) {
-    try {
-      const curso = await Curso.findByPk(req.params.id);
-      if (!curso) return res.status(404).json({ error: 'No encontrado' });
-      res.json(curso);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  },
-  async create(req, res) {
-    try {
-      const nuevo = await Curso.create(req.body);
-      res.status(201).json(nuevo);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  },
-  async update(req, res) {
-    try {
-      const curso = await Curso.findByPk(req.params.id);
-      if (!curso) return res.status(404).json({ error: 'No encontrado' });
-      await curso.update(req.body);
-      res.json(curso);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  },
-  async delete(req, res) {
-    try {
-      const curso = await Curso.findByPk(req.params.id);
-      if (!curso) return res.status(404).json({ error: 'No encontrado' });
-      await curso.destroy();
-      res.json({ message: 'Eliminado' });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  }
+  createCurso,
+  getCursos,
+  getCursoById,
+  updateCurso,
+  deleteCurso,
 };

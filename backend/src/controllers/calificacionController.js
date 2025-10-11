@@ -1,49 +1,94 @@
-const Calificacion = require('../models/Calificacion');
+const calificacionService = require('../services/calificacionService');
+const { body, validationResult } = require('express-validator');
+const logger = require('../utils/logger');
+
+const createCalificacion = [
+  body('id_estudiante_curso').isInt(),
+  body('calificacion').isFloat({ min: 0, max: 5 }),
+  body('fecha_calificacion').isISO8601().toDate(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const calificacion = await calificacionService.create(req.body);
+      res.status(201).json(calificacion);
+    } catch (error) {
+      logger.error(error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  },
+];
+
+const getCalificaciones = async (req, res) => {
+  try {
+    const calificaciones = await calificacionService.findAll();
+    res.json(calificaciones);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getCalificacionById = async (req, res) => {
+  try {
+    const calificacion = await calificacionService.findById(req.params.id);
+    if (calificacion) {
+      res.json(calificacion);
+    } else {
+      res.status(404).json({ error: 'Calificación no encontrada' });
+    }
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const updateCalificacion = [
+  body('id_estudiante_curso').optional().isInt(),
+  body('calificacion').optional().isFloat({ min: 0, max: 5 }),
+  body('fecha_calificacion').optional().isISO8601().toDate(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const [updated] = await calificacionService.update(req.params.id, req.body);
+      if (updated) {
+        const updatedCalificacion = await calificacionService.findById(req.params.id);
+        res.json(updatedCalificacion);
+      } else {
+        res.status(404).json({ error: 'Calificación no encontrada' });
+      }
+    } catch (error) {
+      logger.error(error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+];
+
+const deleteCalificacion = async (req, res) => {
+  try {
+    const deleted = await calificacionService.delete(req.params.id);
+    if (deleted) {
+      res.status(204).send();
+    } else {
+      res.status(404).json({ error: 'Calificación no encontrada' });
+    }
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = {
-  async getAll(req, res) {
-    try {
-      const calificaciones = await Calificacion.findAll();
-      res.json(calificaciones);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  },
-  async getById(req, res) {
-    try {
-      const calificacion = await Calificacion.findByPk(req.params.id);
-      if (!calificacion) return res.status(404).json({ error: 'No encontrado' });
-      res.json(calificacion);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  },
-  async create(req, res) {
-    try {
-      const nueva = await Calificacion.create(req.body);
-      res.status(201).json(nueva);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  },
-  async update(req, res) {
-    try {
-      const calificacion = await Calificacion.findByPk(req.params.id);
-      if (!calificacion) return res.status(404).json({ error: 'No encontrado' });
-      await calificacion.update(req.body);
-      res.json(calificacion);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  },
-  async delete(req, res) {
-    try {
-      const calificacion = await Calificacion.findByPk(req.params.id);
-      if (!calificacion) return res.status(404).json({ error: 'No encontrado' });
-      await calificacion.destroy();
-      res.json({ message: 'Eliminado' });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  }
+  createCalificacion,
+  getCalificaciones,
+  getCalificacionById,
+  updateCalificacion,
+  deleteCalificacion,
 };

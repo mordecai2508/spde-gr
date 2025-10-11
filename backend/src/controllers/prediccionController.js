@@ -1,49 +1,95 @@
-const Prediccion = require('../models/Prediccion');
+const prediccionService = require('../services/prediccionService');
+const { body, validationResult } = require('express-validator');
+const logger = require('../utils/logger');
+
+const createPrediccion = [
+  body('id_estudiante').isInt(),
+  body('probabilidad_desercion').isFloat({ min: 0, max: 1 }),
+  body('fecha_prediccion').isISO8601().toDate(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const prediccion = await prediccionService.create(req.body);
+      res.status(201).json(prediccion);
+    } catch (error) {
+      logger.error(error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  },
+];
+
+const getPredicciones = async (req, res) => {
+  try {
+    const predicciones = await prediccionService.findAll();
+    res.json(predicciones);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getPrediccionById = async (req, res) => {
+  try {
+    const prediccion = await prediccionService.findById(req.params.id);
+    if (prediccion) {
+      res.json(prediccion);
+    } else {
+      res.status(404).json({ error: 'Predicción no encontrada' });
+    }
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const updatePrediccion = [
+  body('id_estudiante').optional().isInt(),
+  body('probabilidad_desercion').optional().isFloat({ min: 0, max: 1 }),
+  body('fecha_prediccion').optional().isISO8601().toDate(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const [updated] = await prediccionService.update(req.params.id, req.body);
+      if (updated) {
+        const updatedPrediccion = await prediccionService.findById(req.params.id);
+        res.json(updatedPrediccion);
+      } else {
+        res.status(404).json({ error: 'Predicción no encontrada' });
+      }
+    } catch (error) {
+      logger.error(error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+];
+
+const deletePrediccion = async (req, res) => {
+  try {
+    const deleted = await prediccionService.delete(req.params.id);
+    if (deleted) {
+      res.status(204).send();
+    }
+    else {
+      res.status(404).json({ error: 'Predicción no encontrada' });
+    }
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = {
-  async getAll(req, res) {
-    try {
-      const predicciones = await Prediccion.findAll();
-      res.json(predicciones);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  },
-  async getById(req, res) {
-    try {
-      const prediccion = await Prediccion.findByPk(req.params.id);
-      if (!prediccion) return res.status(404).json({ error: 'No encontrado' });
-      res.json(prediccion);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  },
-  async create(req, res) {
-    try {
-      const nueva = await Prediccion.create(req.body);
-      res.status(201).json(nueva);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  },
-  async update(req, res) {
-    try {
-      const prediccion = await Prediccion.findByPk(req.params.id);
-      if (!prediccion) return res.status(404).json({ error: 'No encontrado' });
-      await prediccion.update(req.body);
-      res.json(prediccion);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  },
-  async delete(req, res) {
-    try {
-      const prediccion = await Prediccion.findByPk(req.params.id);
-      if (!prediccion) return res.status(404).json({ error: 'No encontrado' });
-      await prediccion.destroy();
-      res.json({ message: 'Eliminado' });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  }
+  createPrediccion,
+  getPredicciones,
+  getPrediccionById,
+  updatePrediccion,
+  deletePrediccion,
 };

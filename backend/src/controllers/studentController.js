@@ -1,6 +1,6 @@
 const studentService = require('../services/studentService');
 const { body, validationResult } = require('express-validator');
-const logger = require('../utils/logger');
+const logger = require('../utils/logger'); // Este es un ejemplo de cómo podrías usar un logger
 
 const createEstudiante = [
   // Validación para campos de la tabla estudiantes
@@ -34,7 +34,6 @@ const getEstudiantes = async (req, res) => {
   }
 };
 
-// Export CRUD handlers...
 
 const getEstudianteById = async (req, res) => {
   try {
@@ -42,7 +41,7 @@ const getEstudianteById = async (req, res) => {
     if (estudiante) {
       res.json(estudiante);
     } else {
-      res.status(404).json({ error: 'Estudiante no encontrado' });
+      res.status(404).json({ error: 'Estudiante no encontrado 1' });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -56,7 +55,7 @@ const updateEstudiante = async (req, res) => {
       const updatedEstudiante = await studentService.findById(req.params.id);
       res.json(updatedEstudiante);
     } else {
-      res.status(404).json({ error: 'Estudiante no encontrado' });
+      res.status(404).json({ error: 'Estudiante no encontrado 2' });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -69,7 +68,7 @@ const deleteEstudiante = async (req, res) => {
     if (deleted) {
       res.status(204).send();
     } else {
-      res.status(404).json({ error: 'Estudiante no encontrado' });
+      res.status(404).json({ error: 'Estudiante no encontrado 3' });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });

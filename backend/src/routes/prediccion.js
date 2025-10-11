@@ -1,11 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const prediccionController = require('../controllers/prediccionController');
+const { authorizeRole } = require('../middleware/roles.js');
+const auth = require('../middleware/auth');
+const { createPrediccion, getPredicciones, getPrediccionById, updatePrediccion, deletePrediccion } = require('../controllers/prediccionController.js');
 
-router.get('/', prediccionController.getAll);
-router.get('/:id', prediccionController.getById);
-router.post('/', prediccionController.create);
-router.put('/:id', prediccionController.update);
-router.delete('/:id', prediccionController.delete);
+// Protected routes
+router.use(auth);
+router.use(authorizeRole(['COORDINADOR', 'DOCENTE']));
+
+router.post('/prediccion', createPrediccion);
+router.get('/prediccion', getPredicciones);
+router.get('/prediccion/:id', getPrediccionById);
+router.put('/prediccion/:id', updatePrediccion);
+router.delete('/prediccion/:id', deletePrediccion);
 
 module.exports = router;

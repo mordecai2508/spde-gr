@@ -1,9 +1,33 @@
-const Prediccion = require('../models/Prediccion');
+const { Prediccion } = require('../models');
+const logger = require('../utils/logger');
 
-module.exports = {
-  getAll: () => Prediccion.findAll(),
-  getById: (id) => Prediccion.findByPk(id),
-  create: (data) => Prediccion.create(data),
-  update: (id, data) => Prediccion.update(data, { where: { id_prediccion: id } }),
-  delete: (id) => Prediccion.destroy({ where: { id_prediccion: id } })
-};
+class PrediccionService {
+  async create(data) {
+    try {
+      const prediccion = await Prediccion.create(data);
+      logger.info(`Prediccion creada: ${prediccion.id_prediccion}`);
+      return prediccion;
+    } catch (error) {
+      logger.error(`Error al crear prediccion: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async findAll() {
+    return await Prediccion.findAll();
+  }
+
+  async findById(id) {
+    return await Prediccion.findByPk(id);
+  }
+
+  async update(id, data) {
+    return await Prediccion.update(data, { where: { id_prediccion: id } });
+  }
+
+  async delete(id) {
+    return await Prediccion.destroy({ where: { id_prediccion: id } });
+  }
+}
+
+module.exports = new PrediccionService();
