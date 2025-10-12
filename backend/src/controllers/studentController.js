@@ -1,6 +1,10 @@
 const studentService = require('../services/studentService');
 const { body, validationResult } = require('express-validator');
 const logger = require('../utils/logger'); // Este es un ejemplo de cómo podrías usar un logger
+const multer = require('multer');
+const fs = require('fs');
+const csv = require('fast-csv');
+const upload = multer({ dest: 'uploads/' });
 
 const createEstudiante = [
   // Validación para campos de la tabla estudiantes
@@ -75,4 +79,49 @@ const deleteEstudiante = async (req, res) => {
   }
 };
 
-module.exports = { createEstudiante, getEstudiantes, getEstudianteById, updateEstudiante, deleteEstudiante };
+const uploadEstudiantes = [
+  upload.single('file'),
+  async (req, res) => {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+    }
+
+    const results = [];
+    const errors = [];
+    let processedRows = 0;
+
+    fs.createReadStream(req.file.path)
+      .pipe(csv.parse({ headers: true }))
+      .on('error', error => {
+        logger.error(error);
+        res.status(500).json({ error: 'Error parsing CSV file' });
+      })
+      .on('data', row => {
+        // Basic validation, you can expand this based on your model
+        if (row.nombre && row.documento) {
+          results.push(row);
+        } else {
+          errors.push({ row, error: 'Missing required fields' });
+        }
+      })
+      .on('end', async rowCount => {
+        logger.info(`Parsed ${rowCount} rows`);
+        for (const studentData of results) {
+          try {
+            await studentService.create(studentData);
+            processedRows++;
+          } catch (error) {
+            errors.push({ row: studentData, error: error.message });
+          }
+        }
+        fs.unlinkSync(req.file.path); // remove uploaded file
+        res.status(200).json({
+          message: 'CSV processed',
+          created: processedRows,
+          errors: errors,
+        });
+      });
+  },
+];
+
+module.exports = { createEstudiante, getEstudiantes, getEstudianteById, updateEstudiante, deleteEstudiante, uploadEstudiantes };
