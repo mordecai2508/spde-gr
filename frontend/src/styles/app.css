@@ -1,0 +1,17 @@
+:root{
+  --primary:#2b6cb0;
+  --muted:#6c757d;
+  --success:#2f855a;
+  --warning:#d69e2e;
+  --danger:#e53e3e;
+}
+body{
+  background: linear-gradient(180deg,#f8fafc, #ffffff);
+  min-height:100vh;
+}
+.card-hero{border-left:6px solid var(--primary)}
+.risk-badge{padding:6px 10px;border-radius:999px;color:#fff;font-weight:600}
+.risk-low{background:var(--success)}
+.risk-medium{background:var(--warning)}
+.risk-high{background:var(--danger)}
+.container-fixed{max-width:1100px}

@@ -1,22 +1,38 @@
-import axios from 'axios';
+// API service layer - centraliza llamadas al backend
+import axios from 'axios'
 
-const api = axios.create({
-  baseURL: 'http://localhost:3001/api', // Ajusta la URL según tu backend
-});
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3006/api'
 
-export const getStudents = () => {
-  return api.get('/students');
-};
+const client = axios.create({ baseURL: API_BASE })
 
-export const uploadStudentsCSV = (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
+// Attach token if available
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
 
-  return api.post('/students/upload', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-};
+// Auth
+export const login = (email, password) => client.post('/auth/login', { email, password })
+export const register = (data) => client.post('/auth/register', data)
 
-export default api;
+// Students
+export const getEstudiantes = () => client.get('/estudiantes')
+export const getEstudianteById = (id) => client.get(`/estudiantes/${id}`)
+export const createEstudiante = (data) => client.post('/estudiantes', data)
+export const uploadEstudiantes = (file) => {
+  const form = new FormData()
+  form.append('file', file)
+  return client.post('/estudiantes/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } })
+}
+
+// Predictions
+export const getPredicciones = () => client.get('/predicciones')
+export const createPrediccion = (data) => client.post('/predicciones', data)
+export const getPrediccionById = (id) => client.get(`/predicciones/${id}`)
+
+// Calificaciones y asistencias (for charts)
+export const getCalificaciones = () => client.get('/calificaciones')
+export const getAsistencias = () => client.get('/asistencias')
+
+export default client
