@@ -15,3 +15,59 @@ body{
 .risk-medium{background:var(--warning)}
 .risk-high{background:var(--danger)}
 .container-fixed{max-width:1100px}
+
+/* Cards más suaves */
+.card {
+  border-radius: 14px;
+}
+
+/* Tipografía suave para subtítulos */
+.text-muted.small {
+  color: #6b7280 !important;
+}
+
+/* Barra de progreso con fondo claro */
+.progress {
+  background-color: #eef1f6;
+}
+
+/* --- Action cards (fila inferior del dashboard) --- */
+.action-card{
+  border-radius: 18px;
+  min-height: 240px;             /* igual alto entre columnas */
+  display: flex;
+}
+.action-card .card-body{
+  padding: 28px 28px 22px;
+}
+
+/* Aro del icono azul */
+.icon-ring{
+  width: 70px; height: 70px;
+  border-radius: 9999px;
+  display: grid; place-items: center;
+  border: 3px solid #0d47a1;
+}
+.icon-emoji{ font-size: 30px; line-height: 1; }
+
+/* Botón grande, claro y redondeado */
+.action-btn{
+  background: #f5f7fb;
+  border: 1px solid #e6ebf4;
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #111827;
+  font-weight: 600;
+}
+.action-btn:hover{
+  background: #eef2f9;
+  border-color: #dfe6f3;
+}
+
+/* Ajuste de espaciado inferior del dashboard */
+.dashboard-container{
+  padding-bottom: 24px;         /* controlado (no deja “aire” de más) */
+}
+.action-grid{
+  margin-bottom: 0 !important;  /* quita margen extra al final */
+}

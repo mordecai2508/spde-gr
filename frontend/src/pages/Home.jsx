@@ -1,80 +1,171 @@
-import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { FaGraduationCap, FaBrain, FaChartLine, FaHandsHelping } from 'react-icons/fa'
+import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { FaBrain, FaChartLine, FaHandsHelping, FaShieldAlt } from 'react-icons/fa'
+import { getEstudiantes, getPredicciones } from '../services/api'
 
-// Home page (hero + features + metrics + CTA)
-export default function Home(){
-  const navigate = useNavigate()
+export default function Home() {
+  const [loading, setLoading] = useState(true)
+  const [totalEstudiantes, setTotalEstudiantes] = useState(0)
+  const [totalPredicciones, setTotalPredicciones] = useState(0)
+  const [predictiveMetric, setPredictiveMetric] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    Promise.all([getEstudiantes(), getPredicciones()])
+      .then(([eRes, pRes]) => {
+        if (!mounted) return
+        const estudiantes = Array.isArray(eRes.data) ? eRes.data : []
+        const predicciones = Array.isArray(pRes.data) ? pRes.data : []
+        setTotalEstudiantes(estudiantes.length)
+        setTotalPredicciones(predicciones.length)
+
+        // Calcular precisión predictiva simulada (basada en riesgo promedio)
+        if (predicciones.length > 0) {
+          const avgRiesgo = predicciones.reduce((s, p) => s + (p.riesgo ?? 0), 0) / predicciones.length
+          setPredictiveMetric(Math.round((1 - avgRiesgo) * 100))
+        } else {
+          setPredictiveMetric(null)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (mounted) setLoading(false)
+      })
+    return () => (mounted = false)
+  }, [])
+
   return (
-    <div>
-      {/* Hero (standalone) */}
-      <div style={{background: '#f4f8ff'}} className="flex flex-col items-center justify-center text-center" role="main">
-        <div className="container" style={{minHeight:'80vh', display:'flex', alignItems:'center', justifyContent:'center', paddingTop:0, paddingBottom:0}}>
-          <div className="mx-auto">
-            <h1 className="display-5 fw-bold">Predicción Inteligente de Deserción Estudiantil</h1>
-            <p className="lead text-muted">Sistema avanzado que utiliza inteligencia artificial para identificar estudiantes en riesgo de abandono académico y proponer intervenciones preventivas efectivas.</p>
-            <div className="mt-4">
-              <Link to="/dashboard" className="btn btn-primary btn-lg">Comenzar Análisis</Link>
+    <div style={{ background: 'linear-gradient(180deg,#f4f8ff 0%,#ffffff 100%)', minHeight: '100vh' }}>
+      
+      {/* === NAV SUPERIOR === */}
+      <header className="container py-3 d-flex align-items-center justify-content-between">
+        <div className="d-flex align-items-center">
+          <div
+            style={{
+              background: '#0d47a1',
+              color: '#fff',
+              borderRadius: '50%',
+              width: 48,
+              height: 48,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 22,
+              marginRight: 10,
+            }}
+          >
+            🎓
+          </div>
+          <div>
+            <div className="fw-bold fs-5" style={{ color: '#0d47a1' }}>SPADE</div>
+            <div className="text-muted small">Sistema Predictivo de Deserción Estudiantil</div>
+          </div>
+        </div>
+        <Link
+          to="/login"
+          className="btn text-white fw-semibold"
+          style={{ background: '#0d47a1', borderRadius: '10px', padding: '8px 18px' }}
+        >
+          <FaShieldAlt className="me-2" />
+          Acceder al Sistema
+        </Link>
+      </header>
+
+      {/* === HERO PRINCIPAL === */}
+      <section className="text-center py-5">
+        <div className="container" style={{ maxWidth: '800px' }}>
+          <h1 className="fw-bold mb-3">
+            Predicción Inteligente de <span style={{ color: '#0d47a1' }}>Deserción Estudiantil</span>
+          </h1>
+          <p className="text-muted mb-4" style={{ fontSize: '1.1rem' }}>
+            Sistema avanzado que utiliza inteligencia artificial para identificar estudiantes en riesgo de abandono académico y proponer intervenciones preventivas efectivas.
+          </p>
+          <Link to="/dashboard" className="btn btn-primary btn-lg fw-semibold px-4 py-2" style={{ background: '#0d47a1', border: 'none', borderRadius: '12px' }}>
+            Comenzar Análisis →
+          </Link>
+        </div>
+      </section>
+
+      {/* === CARDS DE FUNCIONALIDAD === */}
+      <section className="container my-5">
+        <div className="row g-4">
+          <div className="col-md-4">
+            <div className="card border-0 shadow-sm text-center p-4 h-100">
+              <div className="text-primary fs-1 mb-3"><FaBrain /></div>
+              <h5 className="fw-bold">IA Predictiva</h5>
+              <p className="text-muted mb-0">
+                Algoritmos avanzados que analizan múltiples variables para predecir el riesgo de deserción con alta precisión.
+              </p>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="card border-0 shadow-sm text-center p-4 h-100">
+              <div className="text-primary fs-1 mb-3"><FaChartLine /></div>
+              <h5 className="fw-bold">Analítica Visual</h5>
+              <p className="text-muted mb-0">
+                Dashboards intuitivos con gráficos claros que facilitan la interpretación de patrones y tendencias.
+              </p>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="card border-0 shadow-sm text-center p-4 h-100">
+              <div className="text-primary fs-1 mb-3"><FaHandsHelping /></div>
+              <h5 className="fw-bold">Intervención Temprana</h5>
+              <p className="text-muted mb-0">
+                Recomendaciones personalizadas y accionables para implementar estrategias de retención efectivas.
+              </p>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Features */}
-      <div className="container my-5">
-        <div className="row g-3">
-          <div className="col-md-4">
-            <div className="card p-4 text-center shadow-sm">
-              <div className="text-primary fs-2 mb-2"><FaBrain /></div>
-              <h5>IA Predictiva</h5>
-              <p className="text-muted">Algoritmos avanzados que analizan múltiples variables para predecir el riesgo de deserción con alta precisión.</p>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="card p-4 text-center shadow-sm">
-              <div className="text-primary fs-2 mb-2"><FaChartLine /></div>
-              <h5>Analítica Visual</h5>
-              <p className="text-muted">Dashboards intuitivos con gráficos claros que facilitan la interpretación de patrones y tendencias.</p>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="card p-4 text-center shadow-sm">
-              <div className="text-primary fs-2 mb-2"><FaHandsHelping /></div>
-              <h5>Intervención Temprana</h5>
-              <p className="text-muted">Recomendaciones personalizadas y accionables para implementar estrategias de retención efectivas.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Metrics */}
-      <div className="py-4 bg-white">
+      {/* === MÉTRICAS DINÁMICAS === */}
+      <section className="bg-white py-5">
         <div className="container text-center">
           <div className="row">
-            <div className="col-md-4">
-              <div className="fs-2 text-primary fw-bold">87%</div>
+            <div className="col-md-4 mb-3 mb-md-0">
+              <div className="fs-2 fw-bold text-primary">
+                {loading ? 'Cargando...' : predictiveMetric !== null ? `${predictiveMetric}%` : '—'}
+              </div>
               <div className="text-muted">Precisión Predictiva</div>
             </div>
-            <div className="col-md-4">
-              <div className="fs-2 text-primary fw-bold">1,200+</div>
+            <div className="col-md-4 mb-3 mb-md-0">
+              <div className="fs-2 fw-bold text-primary">
+                {loading ? 'Cargando...' : `${totalEstudiantes.toLocaleString()}+`}
+              </div>
               <div className="text-muted">Estudiantes Analizados</div>
             </div>
             <div className="col-md-4">
-              <div className="fs-2 text-primary fw-bold">45%</div>
-              <div className="text-muted">Reducción en Deserción</div>
+              <div className="fs-2 fw-bold text-primary">
+                {loading ? 'Cargando...' : `${totalPredicciones.toLocaleString()}`}
+              </div>
+              <div className="text-muted">Predicciones Realizadas</div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* CTA */}
-      <div style={{background:'#0b4b8a', color:'#fff'}} className="py-5 text-center">
-        <div className="container">
-          <h3>¿Listo para transformar la retención estudiantil?</h3>
-          <p>Accede al sistema como Coordinador Académico y comienza a utilizar el poder de la predicción inteligente.</p>
-          <Link to="/login" className="btn btn-light text-primary">Iniciar Sesión</Link>
+      {/* === CTA FINAL === */}
+      <section className="text-center py-5" style={{ background: '#0b4b8a', color: '#fff' }}>
+        <div className="container" style={{ maxWidth: '700px' }}>
+          <h3 className="fw-bold mb-3">¿Listo para transformar la retención estudiantil?</h3>
+          <p className="mb-4">
+            Accede al sistema como Coordinador Académico y comienza a utilizar el poder de la predicción inteligente.
+          </p>
+          <Link
+            to="/login"
+            className="btn btn-light fw-semibold"
+            style={{
+              color: '#0d47a1',
+              padding: '10px 22px',
+              borderRadius: '12px',
+            }}
+          >
+            Iniciar Sesión <FaShieldAlt className="ms-2" />
+          </Link>
         </div>
-      </div>
+      </section>
     </div>
   )
 }
