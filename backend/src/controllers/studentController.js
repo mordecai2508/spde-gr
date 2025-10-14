@@ -123,5 +123,4 @@ const uploadEstudiantes = [
       });
   },
 ];
-
 module.exports = { createEstudiante, getEstudiantes, getEstudianteById, updateEstudiante, deleteEstudiante, uploadEstudiantes };
