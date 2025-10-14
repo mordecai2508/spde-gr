@@ -8,10 +8,11 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            steps {
-                git 'https://github.com/mordecai2508/spde-gr.git'
-            }
-        }
+    steps {
+        git branch: 'main', url: 'https://github.com/mordecai2508/spde-gr.git'
+    }
+}
+
 
         stage('Install dependencies') {
             steps {
