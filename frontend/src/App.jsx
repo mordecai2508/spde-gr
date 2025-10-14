@@ -6,10 +6,14 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import CargarCSV from './pages/CargarCSV'
 import Prediccion from './pages/Prediccion'
-import Estudiantes from './pages/Estudiantes'           // Lista (paginada 10)
-import EstudianteDetalle from './pages/EstudianteDetalle' // Detalle /estudiantes/:id
+import Estudiantes from './pages/Estudiantes'
+import EstudianteDetalle from './pages/EstudianteDetalle'
 
-// Dashboards por rol
+// Nuevas (docente)
+import CalificacionesDocente from './pages/CalificacionesDocente'
+import AsistenciasDocente from './pages/AsistenciasDocente'
+
+// Dashboards
 import DashboardAdmin from './pages/DashboardAdmin'
 import DashboardDocente from './pages/DashboardDocente'
 
@@ -17,36 +21,27 @@ import DashboardDocente from './pages/DashboardDocente'
 import Navbar from './components/Navbar'
 import Toasts from './components/Toasts'
 
-// ==== Guard de ruta privada (token en localStorage) ====
-// (useLocation is already imported above with Routes/Route/Navigate)
-
+// Guard simple
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token')
-  const loc = useLocation()
-  // debug: log token presence and attempted path
-  console.log('[PrivateRoute] token?', !!token, 'path=', loc.pathname)
   return token ? children : <Navigate to="/login" replace />
 }
 
-// ==== Selector de dashboard según `user.rol` en localStorage ====
-// valores esperados: 'COORDINADOR' | 'DOCENTE'
+// Selector por rol
 const DashboardByRole = () => {
   const user = JSON.parse(localStorage.getItem('user') || 'null')
-  console.log('[DashboardByRole] user=', user)
   if (!user?.rol) return <Navigate to="/login" replace />
   return user.rol === 'COORDINADOR' ? <DashboardAdmin /> : <DashboardDocente />
 }
 
 export default function App() {
   const location = useLocation()
-  // Ocultar navbar en Home y Login
   const hideNavbar = location.pathname === '/' || location.pathname === '/login'
 
   return (
     <div>
       {!hideNavbar && <Navbar />}
 
-      {/* Contenedor general (sin padding en Home/Login para landing limpia) */}
       <div className={hideNavbar ? '' : 'container container-fixed mt-4'}>
         <Routes>
           {/* Públicas */}
@@ -80,6 +75,7 @@ export default function App() {
             }
           />
 
+          {/* Solo coordinador verá el link en el menú, pero protegemos igual */}
           <Route
             path="/cargar"
             element={
@@ -88,11 +84,30 @@ export default function App() {
               </PrivateRoute>
             }
           />
+
           <Route
             path="/prediccion"
             element={
               <PrivateRoute>
                 <Prediccion />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Nuevas del docente */}
+          <Route
+            path="/calificaciones"
+            element={
+              <PrivateRoute>
+                <CalificacionesDocente />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/asistencias"
+            element={
+              <PrivateRoute>
+                <AsistenciasDocente />
               </PrivateRoute>
             }
           />

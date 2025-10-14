@@ -81,7 +81,7 @@ export default function Home() {
           <p className="text-muted mb-4" style={{ fontSize: '1.1rem' }}>
             Sistema avanzado que utiliza inteligencia artificial para identificar estudiantes en riesgo de abandono académico y proponer intervenciones preventivas efectivas.
           </p>
-          <Link to="/dashboard" className="btn btn-primary btn-lg fw-semibold px-4 py-2" style={{ background: '#0d47a1', border: 'none', borderRadius: '12px' }}>
+          <Link to="/login" className="btn btn-primary btn-lg fw-semibold px-4 py-2" style={{ background: '#0d47a1', border: 'none', borderRadius: '12px' }}>
             Comenzar Análisis →
           </Link>
         </div>
