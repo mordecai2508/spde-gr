@@ -1,4 +1,4 @@
-name: Run Tests
+name: Run Tests and Deploy to Kind
 
 on:
   push:
@@ -14,17 +14,47 @@ jobs:
       - name: Checkout del repositorio
         uses: actions/checkout@v3
 
-      - name: Configurar Docker
+      - name: Instalar Kind y Kubectl
         run: |
-          docker-compose -f docker-compose.yml up -d
-          sleep 15  # Espera a que los contenedores estén listos
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
 
-      - name: Instalar dependencias
+      - name: Crear clúster Kubernetes temporal
+        run: kind create cluster --name test-cluster
+
+      - name: Aplicar manifiestos de Kubernetes
+        run: |
+          kubectl apply -f k8s/
+          echo "Esperando que los pods estén listos..."
+          kubectl wait --for=condition=ready pod --all --timeout=180s
+
+      - name: Instalar dependencias Backend
+        working-directory: backend
         run: npm install
 
-      - name: Ejecutar pruebas con Jest
-        run: npm test
+      - name: Ejecutar pruebas Backend
+        working-directory: backend
+        run: npm test -- --coverage
 
-      - name: Detener contenedores
+      - name: Instalar dependencias Frontend
+        working-directory: frontend
+        run: npm install
+
+      - name: Ejecutar pruebas Frontend
+        working-directory: frontend
+        run: npm test -- --watchAll=false
+
+      - name: Subir reporte de cobertura a Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./backend/coverage/lcov.info,./frontend/coverage/lcov.info
+          flags: unittests
+          name: coverage-report
+
+      - name: Eliminar clúster Kind
         if: always()
-        run: docker-compose down
+        run: kind delete cluster --name test-cluster
