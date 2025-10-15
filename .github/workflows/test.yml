@@ -30,7 +30,10 @@ jobs:
         run: |
           kubectl apply -f k8s/
           echo "Esperando que los pods estén listos..."
-          kubectl wait --for=condition=ready pod --all --timeout=180s
+          sleep 10
+          kubectl get pods -A
+          kubectl wait --for=condition=available --timeout=180s deployment --all
+
 
       - name: Instalar dependencias Backend
         working-directory: backend
