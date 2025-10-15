@@ -4,11 +4,6 @@ pipeline {
     
     environment {
         BACKEND_DIR = 'backend'
-        DB_HOST = 'host.docker.internal'  // nombre del servicio en docker-compose
-        DB_USER = 'root'
-        DB_PASSWORD = ''
-        DB_NAME = 'spde'
-        NODE_ENV = 'development'
     }
     stages {
         stage('Checkout') {
