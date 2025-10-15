@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    container_name: spde-backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "3006:3006"
+    depends_on:
+      - db
+    networks:
+      - spdenet
+
+  frontend:
+    build: ./frontend
+    container_name: spde-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - spdenet
+
+  db:
+    image: mysql:8.0
+    container_name: spde-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: spde
+      MYSQL_USER: spde_user
+      MYSQL_PASSWORD: spde_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - spdenet
+
+networks:
+  spdenet:
+    driver: bridge
+
+volumes:
+  db_data:

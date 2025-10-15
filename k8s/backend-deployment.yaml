@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spde-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spde-backend
+  template:
+    metadata:
+      labels:
+        app: spde-backend
+    spec:
+      containers:
+        - name: spde-gr-backend
+          image: mordecai2508/spde-gr-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3006
+          env:
+            - name: DB_HOST
+              value: "host.docker.internal"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASS
+              value: ""
+            - name: DB_NAME
+              value: "spde"
+            - name: DB_PORT
+              value: "3306"
+            - name: JWT_SECRET
+              value: "B0iJnGxx*+V-N3_mg*%uc>B-y"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spde-backend-service
+spec:
+  selector:
+    app: spde-backend
+  ports:
+    - protocol: TCP
+      port: 3006
+      targetPort: 3006
+  type: ClusterIP
