@@ -21,7 +21,7 @@ pipeline {
                 stage('Backend Dependencies') {
                     steps {
                         dir('backend') {
-                            echo '📦 Instalando dependencias del backend...'
+                            echo '📦 Backend: Instalando dependencias...'
                             sh 'npm install'
                         }
                     }
@@ -29,7 +29,7 @@ pipeline {
                 stage('Frontend Dependencies') {
                     steps {
                         dir('frontend') {
-                            echo '📦 Instalando dependencias del frontend...'
+                            echo '📦 Frontend: Instalando dependencias...'
                             sh 'npm install'
                         }
                     }
@@ -37,11 +37,11 @@ pipeline {
             }
         }
         
-        stage('Test & Build') {
+        stage('Build & Test') {
             parallel {
                 stage('Backend Pipeline') {
                     stages {
-                        stage('Backend: Test') {
+                        stage('Backend Test') {
                             steps {
                                 dir('backend') {
                                     echo '🧪 Testing backend...'
@@ -49,11 +49,17 @@ pipeline {
                                 }
                             }
                         }
-                        stage('Backend: Package') {
+                        stage('Backend Security') {
                             steps {
                                 dir('backend') {
-                                    echo '📦 Packaging backend...'
-                                    sh 'tar -czf backend.tar.gz --exclude=node_modules .'
+                                    sh 'npm audit --audit-level=moderate || true'
+                                }
+                            }
+                        }
+                        stage('Backend Package') {
+                            steps {
+                                dir('backend') {
+                                    sh 'tar -czf backend.tar.gz --exclude=node_modules --exclude=.git .'
                                 }
                             }
                         }
@@ -62,31 +68,29 @@ pipeline {
                 
                 stage('Frontend Pipeline') {
                     stages {
-                        stage('Frontend: Test') {
+                        stage('Frontend Security') {
                             steps {
                                 dir('frontend') {
-                                    echo '🧪 Testing frontend...'
-                                    sh 'npm test -- --watchAll=false || exit 0'
+                                    sh 'npm audit --audit-level=moderate || true'
                                 }
                             }
                         }
-                        stage('Frontend: Build') {
+                        stage('Frontend Build') {
                             steps {
                                 dir('frontend') {
-                                    echo '🏗️ Building frontend...'
-                                    sh 'npm run build || echo "No build script"'
-                                }
-                            }
-                        }
-                        stage('Frontend: Package') {
-                            steps {
-                                dir('frontend') {
-                                    echo '📦 Packaging frontend...'
+                                    echo '🏗️ Building with Vite...'
                                     sh '''
-                                        if [ -d "build" ]; then
-                                            tar -czf frontend-build.tar.gz build/
-                                        fi
+                                        npm run build
+                                        echo "✓ Build completado"
+                                        du -sh dist/
                                     '''
+                                }
+                            }
+                        }
+                        stage('Frontend Package') {
+                            steps {
+                                dir('frontend') {
+                                    sh 'tar -czf frontend-build.tar.gz dist/'
                                 }
                             }
                         }
@@ -104,14 +108,14 @@ pipeline {
     
     post {
         success {
+            archiveArtifacts artifacts: 'backend/backend.tar.gz, frontend/frontend-build.tar.gz'
             echo '✅ Pipeline completado!'
         }
         failure {
             echo '❌ Pipeline falló'
         }
         always {
-            archiveArtifacts artifacts: '**/backend.tar.gz, **/frontend-build.tar.gz', 
-                             allowEmptyArchive: true
+            sh 'rm -rf backend/node_modules frontend/node_modules frontend/dist || true'
         }
     }
 }
