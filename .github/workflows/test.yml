@@ -14,8 +14,17 @@ jobs:
       - name: Checkout del repositorio
         uses: actions/checkout@v3
 
+      - name: Configurar Docker
+        run: |
+          docker-compose -f docker-compose.yml up -d
+          sleep 15  # Espera a que los contenedores estén listos
+
       - name: Instalar dependencias
         run: npm install
 
       - name: Ejecutar pruebas con Jest
         run: npm test
+
+      - name: Detener contenedores
+        if: always()
+        run: docker-compose down
