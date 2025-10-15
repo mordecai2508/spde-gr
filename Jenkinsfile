@@ -5,8 +5,8 @@ pipeline {
         NODE_ENV = 'test'
         DB_HOST = 'host.docker.internal'  // ← CLAVE
         DB_USER = 'root'
-        DB_PASSWORD = 'tu_password'
-        DB_NAME = 'spde_db'
+        DB_PASSWORD = ''
+        DB_NAME = 'spde'
     }
     
     stages {
