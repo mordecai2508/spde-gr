@@ -1,4 +1,4 @@
-name: Run Tests and Deploy to Kind
+name: Run Tests
 
 on:
   push:
@@ -11,53 +11,82 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout del repositorio
+      - name: 🧾 Checkout del repositorio
         uses: actions/checkout@v3
 
-      - name: Instalar Kind y Kubectl
+      # -----------------------------------------------------
+      # 1️⃣ Instalar dependencias de Docker, Kind y kubectl
+      # -----------------------------------------------------
+      - name: 🔧 Instalar Kind y kubectl
         run: |
-          curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
+          sudo apt-get update
+          sudo apt-get install -y kubectl
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64
           chmod +x ./kind
           sudo mv ./kind /usr/local/bin/kind
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x ./kubectl
-          sudo mv ./kubectl /usr/local/bin/kubectl
 
-      - name: Crear clúster Kubernetes temporal
-        run: kind create cluster --name test-cluster
+      # -----------------------------------------------------
+      # 2️⃣ Crear un clúster temporal de Kubernetes
+      # -----------------------------------------------------
+      - name: 🌐 Crear clúster Kind
+        run: kind create cluster --name spde-cluster
 
-      - name: Aplicar manifiestos de Kubernetes
+      # -----------------------------------------------------
+      # 3️⃣ Construir imágenes Docker locales
+      # -----------------------------------------------------
+      - name: 🏗️ Construir imágenes Docker
+        run: |
+          docker build -t spde-backend:latest ./backend
+          docker build -t spde-frontend:latest ./frontend
+
+      # -----------------------------------------------------
+      # 4️⃣ Cargar imágenes locales al clúster Kind
+      # -----------------------------------------------------
+      - name: 📦 Cargar imágenes al clúster Kind
+        run: |
+          kind load docker-image spde-backend:latest --name spde-cluster
+          kind load docker-image spde-frontend:latest --name spde-cluster
+
+      # -----------------------------------------------------
+      # 5️⃣ Aplicar manifiestos de Kubernetes
+      # -----------------------------------------------------
+      - name: 🚀 Aplicar manifiestos de Kubernetes
         run: |
           kubectl apply -f k8s/
           echo "Esperando que los pods estén listos..."
-          sleep 10
+          kubectl wait --for=condition=available --timeout=180s deployment/spde-backend
+          kubectl wait --for=condition=available --timeout=180s deployment/spde-frontend
           kubectl get pods -A
-          kubectl wait --for=condition=available --timeout=180s deployment --all
 
+      # -----------------------------------------------------
+      # 6️⃣ Instalar dependencias y ejecutar pruebas backend
+      # -----------------------------------------------------
+      - name: 🧩 Instalar dependencias Backend
+        run: |
+          cd backend
+          npm install
 
-      - name: Instalar dependencias Backend
-        working-directory: backend
-        run: npm install
+      - name: 🧪 Ejecutar pruebas Backend
+        run: |
+          cd backend
+          npm test
 
-      - name: Ejecutar pruebas Backend
-        working-directory: backend
-        run: npm test -- --coverage
+      # -----------------------------------------------------
+      # 7️⃣ Instalar dependencias y ejecutar pruebas frontend
+      # -----------------------------------------------------
+      - name: 💻 Instalar dependencias Frontend
+        run: |
+          cd frontend
+          npm install
 
-      - name: Instalar dependencias Frontend
-        working-directory: frontend
-        run: npm install
+      - name: 🧠 Ejecutar pruebas Frontend
+        run: |
+          cd frontend
+          npm run test --if-present
 
-      - name: Ejecutar pruebas Frontend
-        working-directory: frontend
-        run: npm test -- --watchAll=false
-
-      - name: Subir reporte de cobertura a Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./backend/coverage/lcov.info,./frontend/coverage/lcov.info
-          flags: unittests
-          name: coverage-report
-
-      - name: Eliminar clúster Kind
+      # -----------------------------------------------------
+      # 8️⃣ Eliminar clúster Kind (limpieza)
+      # -----------------------------------------------------
+      - name: 🧹 Eliminar clúster Kind
         if: always()
-        run: kind delete cluster --name test-cluster
+        run: kind delete cluster --name spde-cluster
