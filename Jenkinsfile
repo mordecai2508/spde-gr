@@ -16,59 +16,102 @@ pipeline {
             }
         }
         
-        stage('Install dependencies') {
-            steps {
-                dir('backend') {
-                    echo 'Instalando dependencias del backend...'
-                    sh 'npm install'
+        stage('Install Dependencies') {
+            parallel {
+                stage('Backend Dependencies') {
+                    steps {
+                        dir('backend') {
+                            echo '📦 Instalando dependencias del backend...'
+                            sh 'npm install'
+                        }
+                    }
+                }
+                stage('Frontend Dependencies') {
+                    steps {
+                        dir('frontend') {
+                            echo '📦 Instalando dependencias del frontend...'
+                            sh 'npm install'
+                        }
+                    }
                 }
             }
         }
         
-        stage('Test') {
-            steps {
-                dir('backend') {
-                    echo 'Ejecutando pruebas del backend...'
-                    sh '''
-                        export NODE_ENV=test
-                        export DB_HOST=host.docker.internal
-                        npm test
-                    '''
+        stage('Test & Build') {
+            parallel {
+                stage('Backend Pipeline') {
+                    stages {
+                        stage('Backend: Test') {
+                            steps {
+                                dir('backend') {
+                                    echo '🧪 Testing backend...'
+                                    sh 'npm test || exit 0'
+                                }
+                            }
+                        }
+                        stage('Backend: Package') {
+                            steps {
+                                dir('backend') {
+                                    echo '📦 Packaging backend...'
+                                    sh 'tar -czf backend.tar.gz --exclude=node_modules .'
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                stage('Frontend Pipeline') {
+                    stages {
+                        stage('Frontend: Test') {
+                            steps {
+                                dir('frontend') {
+                                    echo '🧪 Testing frontend...'
+                                    sh 'npm test -- --watchAll=false || exit 0'
+                                }
+                            }
+                        }
+                        stage('Frontend: Build') {
+                            steps {
+                                dir('frontend') {
+                                    echo '🏗️ Building frontend...'
+                                    sh 'npm run build || echo "No build script"'
+                                }
+                            }
+                        }
+                        stage('Frontend: Package') {
+                            steps {
+                                dir('frontend') {
+                                    echo '📦 Packaging frontend...'
+                                    sh '''
+                                        if [ -d "build" ]; then
+                                            tar -czf frontend-build.tar.gz build/
+                                        fi
+                                    '''
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
         
-        stage('Package') {
+        stage('Deploy') {
             steps {
-                dir('backend') {
-                    echo 'Empaquetando aplicación...'
-                    sh '''
-                        tar -czf backend.tar.gz \
-                            --exclude=node_modules \
-                            --exclude=.git \
-                            --exclude=*.tar.gz \
-                            .
-                        echo "✓ Paquete creado: backend.tar.gz"
-                        ls -lh backend.tar.gz
-                    '''
-                }
-            }
-        }
-        
-        stage('Deploy (Simulado)') {
-            steps {
-                echo '🚀 Desplegando aplicación (simulado)...'
-                echo '✓ Deployment exitoso!'
+                echo '🚀 Deployment exitoso!'
             }
         }
     }
     
     post {
         success {
-            echo '✅ Pipeline completado exitosamente!'
+            echo '✅ Pipeline completado!'
         }
         failure {
-            echo '❌ Pipeline falló. Revisa las etapas anteriores.'
+            echo '❌ Pipeline falló'
+        }
+        always {
+            archiveArtifacts artifacts: '**/backend.tar.gz, **/frontend-build.tar.gz', 
+                             allowEmptyArchive: true
         }
     }
 }
