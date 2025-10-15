@@ -1,67 +1,74 @@
 pipeline {
     agent any
-        agent any
     
     environment {
-        BACKEND_DIR = 'backend'
+        NODE_ENV = 'test'
+        DB_HOST = 'host.docker.internal'  // ← CLAVE
+        DB_USER = 'root'
+        DB_PASSWORD = 'tu_password'
+        DB_NAME = 'spde_db'
     }
+    
     stages {
         stage('Checkout') {
-    steps {
-        git branch: 'main', url: 'https://github.com/mordecai2508/spde-gr.git'
-    }
-}
-
-
+            steps {
+                git branch: 'main', url: 'https://github.com/mordecai2508/spde-gr.git'
+            }
+        }
+        
         stage('Install dependencies') {
             steps {
-                dir("${BACKEND_DIR}") {
-                    echo "Instalando dependencias del backend..."
+                dir('backend') {
+                    echo 'Instalando dependencias del backend...'
                     sh 'npm install'
                 }
             }
         }
-
-        stage('Build') {
-            steps {
-                dir("${BACKEND_DIR}") {
-                    echo "Construyendo proyecto backend..."
-                    sh 'npm run build || echo "Sin script de build, continuando..."'
-                }
-            }
-        }
-
+        
         stage('Test') {
             steps {
-                dir("${BACKEND_DIR}") {
-                    echo "Ejecutando pruebas del backend..."
-                    sh 'npm test || echo "Sin pruebas definidas, continuando..."'
+                dir('backend') {
+                    echo 'Ejecutando pruebas del backend...'
+                    sh '''
+                        export NODE_ENV=test
+                        export DB_HOST=host.docker.internal
+                        npm test
+                    '''
                 }
             }
         }
-
+        
         stage('Package') {
             steps {
-                dir("${BACKEND_DIR}") {
-                    echo "Empaquetando aplicación..."
-                    sh 'zip -r backend.zip .'
+                dir('backend') {
+                    echo 'Empaquetando aplicación...'
+                    sh '''
+                        tar -czf backend.tar.gz \
+                            --exclude=node_modules \
+                            --exclude=.git \
+                            --exclude=*.tar.gz \
+                            .
+                        echo "✓ Paquete creado: backend.tar.gz"
+                        ls -lh backend.tar.gz
+                    '''
                 }
             }
         }
-
+        
         stage('Deploy (Simulado)') {
             steps {
-                echo "Despliegue simulado: Jenkins ha construido el backend exitosamente."
+                echo '🚀 Desplegando aplicación (simulado)...'
+                echo '✓ Deployment exitoso!'
             }
         }
     }
-
+    
     post {
         success {
-            echo "✅ Pipeline completado con éxito."
+            echo '✅ Pipeline completado exitosamente!'
         }
         failure {
-            echo "❌ Pipeline falló. Revisa las etapas anteriores."
+            echo '❌ Pipeline falló. Revisa las etapas anteriores.'
         }
     }
 }
