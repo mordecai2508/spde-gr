@@ -9,9 +9,8 @@ export default function Login() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const user = localStorage.getItem('user')
-    if (token && user) navigate('/dashboard', { replace: true })
+    // NOTE: don't auto-redirect here. The Home page should link to /login and
+    // the login form should be shown. Redirect after a successful login only.
   }, [navigate])
 
   const handleChange = (e) => {

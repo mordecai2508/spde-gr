@@ -128,3 +128,65 @@ export const getCalificaciones = () => client.get('/calificaciones')
 export const getAsistencias = () => client.get('/asistencias')
 
 export default client
+
+// --- Calificaciones helpers ---
+export const createCalificacion = (data) => client.post('/calificaciones', data)
+export const upsertCalificacion = async (payload) => {
+  // Try common upsert endpoint, then POST, then PUT as fallbacks
+  try { return await client.post('/calificaciones/upsert', payload) } catch {}
+  try { return await client.post('/calificaciones', payload) } catch {}
+  try { return await client.put('/calificaciones', payload) } catch {}
+  throw new Error('No se pudo upsertar la calificación')
+}
+// Calificaciones del docente (para precargar edición)
+export const getCalificacionesByDocente = async (docenteId) => {
+  try { return await client.get(`/calificaciones`, { params: { docente: docenteId } }) } catch {}
+  try { return await client.get(`/docentes/${docenteId}/calificaciones`) } catch {}
+  return { data: [] }
+}
+
+// --- Asistencias helpers ---
+export const createAsistencia = (data) => client.post('/asistencias', data)
+export const upsertAsistencia = async (payload) => {
+  try { return await client.post('/asistencias/upsert', payload) } catch {}
+  try { return await client.post('/asistencias', payload) } catch {}
+  try { return await client.put('/asistencias', payload) } catch {}
+  throw new Error('No se pudo upsertar la asistencia')
+}
+export const getAsistenciasByFecha = (fecha, docenteId) => client.get('/asistencias', { params: { fecha, docente: docenteId } })
+
+// --- Estudiantes por docente y relaciones ---
+export const getEstudiantesByDocente = async (docenteId) => {
+  try { return await client.get(`/docentes/${docenteId}/estudiantes`) } catch {}
+  try { return await client.get('/estudiantes', { params: { docente: docenteId } }) } catch {}
+  // Try to derive via docente_curso -> estudiante_curso
+  try {
+    const cursosRes = await client.get('/docente_curso', { params: { docente: docenteId } })
+    const cursos = Array.isArray(cursosRes.data) ? cursosRes.data : []
+    const cursoIds = cursos.map(c => c.id_curso ?? c.cursoId ?? c.id)
+    if (cursoIds.length) {
+      const ecRes = await client.get('/estudiante_curso')
+      const ecs = Array.isArray(ecRes.data) ? ecRes.data : []
+      const estudiantes = ecs
+        .filter(ec => cursoIds.includes(ec.id_curso ?? ec.cursoId ?? ec.curso_id))
+        .map(ec => ({ id: ec.id_estudiante ?? ec.estudianteId ?? ec.id_usuario ?? ec.id }))
+      return { data: estudiantes }
+    }
+  } catch {}
+  // Final fallback: return all estudiantes
+  return await client.get('/estudiantes')
+}
+
+export const getDocenteCursos = async (docenteId) => {
+  try { return await client.get(`/docentes/${docenteId}/cursos`) } catch {}
+  try { return await client.get(`/docente_curso`, { params: { docente: docenteId } }) } catch {}
+  try { return await client.get(`/docente_curso`, { params: { id_usuario: docenteId } }) } catch {}
+  return { data: [] }
+}
+
+export const getEstudianteCursos = async () => {
+  try { return await client.get(`/estudiante_curso`) } catch {}
+  try { return await client.get(`/cursos/estudiantes`) } catch {}
+  return { data: [] }
+}
+
